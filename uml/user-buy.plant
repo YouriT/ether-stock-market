@@ -1,0 +1,46 @@
+@startuml
+actor Buyer
+actor "Ether Market Place" as EMP
+actor Cent
+database "BUY/SELL contract" as BS
+
+Buyer -> EMP: Buy //N// BSR
+    Buyer -> Cent: 10$ are uploaded to an account
+    Cent -> Cent: Mint 10RD
+    Cent --> Buyer: Transfer 10RD (real dollars)
+Buyer -> EMP: Buy 0.1 XYZ
+EMP -> EMP: Buyer as >= 10 RDs + mean volatility of the asset equivalent RDs
+EMP -> BS: Add Buyer to contract for buying and take RDs as a warranty
+BS -> Buyer: Added to BUY contract
+
+alt enough buyers within the same day to get at least 1 share
+note left
+    Number of share in the contract need to round,
+    if number is not round, people at the end will
+    settle only if they want to get >= 1 share,
+    the factional part won't settle
+end note
+
+    EMP -> Cent: Buy //n// XYZ at market price
+    alt success
+        Cent -> EMP: Create a new contract for XYZ\nbounding ownership to Ether network
+
+        alt XYZ token does not exist
+            Cent -> EMP: Issue new token with //n// XYZ share
+        else success and XYZ token exists
+            Cent -> EMP: Mint token with //n// more values representing XYZ
+        end
+
+        EMP -> BS: Settle contract, XYZ was bought at //p// RDs
+        BS --> Buyer: Reimburse difference between warranty RDs and //p// / 10
+        EMP --> Buyer: Transfer 0.1 XYZ token
+    else failure, could not buy within limit time frame
+        Cent -> EMP: Cancel contract
+        EMP -> BS: Cancel contract
+        BS --> Buyer: Contract cancelled, reimburse warranty RDs
+    end
+else not enough buyers
+    EMP -> BS: Contract cancelled
+    BS --> Buyer: Contract cancelled, reimburse warranty RDs
+end
+@enduml
